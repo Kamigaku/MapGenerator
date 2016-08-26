@@ -15,12 +15,25 @@ public abstract class Utility {
     }
 
     public static ArrayList<Point> commonCoords(ArrayList<Point> v1, ArrayList<Point> v2) {
-        ArrayList<Point> v3 = new ArrayList<Point>();
+        /* 100 ms */
+        ArrayList<Point> v3 = new ArrayList<>();
         for(Point v : v1) {
             if(v2.contains(v))
                 v3.add(v);
         }
         return v3;
+        /* Plus long
+        ArrayList<Point> v3 = new ArrayList<>();
+        for(int i = 0; i < v1.size(); i++) {
+            Point v1i = v1.get(i);
+            for(int j = 0; j < v2.size(); j++) {
+                Point v2j = v2.get(j);
+                if(v1i.x == v2j.x && v1i.y == v2j.y)
+                    v3.add(v1i);
+            }
+        }
+        return v3;
+        */
     }
     
     /***
@@ -45,16 +58,88 @@ public abstract class Utility {
         return (xAxis && yAxis);
     }
     
+    /**
+     * Check if the caracther appear on the Y axis of the position. ( - 1 || 1 )
+     * @param map The map where to look
+     * @param x_origin The x position
+     * @param y_origin The y position
+     * @param search The character to search
+     * @return TRUE if the character is present once, false if he is not present
+     */
     public static boolean checkYSurrondings(char[][] map, int x_origin, int y_origin,
                                             char search) {
         return (y_origin - 1 >= 0 && map[y_origin - 1][x_origin] == search) || 
                (y_origin + 1 < map.length && map[y_origin + 1][x_origin] == search);
     }
     
+    /**
+     * Check if the caracthere either on the X axis of the position. ( - 1 || 1 )
+     * @param map The map where to look
+     * @param x_origin The x position
+     * @param y_origin The y position
+     * @param search The character to search
+     * @return TRUE if the character is present once, false if he is not present
+     */
     public static boolean checkXSurrondings(char[][] map, int x_origin, int y_origin,
                                             char search) {
         return (x_origin - 1 >= 0 && map[y_origin][x_origin - 1] == search) || 
                (x_origin + 1 < map[y_origin].length && map[y_origin][x_origin + 1] == search);
+    }
+    
+    /**
+     * Check if the caracther is present on the Y axis of the position. ( - 1 && 1 )
+     * @param map The map where to look
+     * @param x_origin The x position
+     * @param y_origin The y position
+     * @param search The character to search
+     * @return TRUE if the character is present on both side, false if he is not present
+     */
+    public static boolean checkYBothSide(char[][] map, int x_origin, int y_origin,
+                                            char search) {
+        return (y_origin - 1 >= 0 && map[y_origin - 1][x_origin] == search) && 
+               (y_origin + 1 < map.length && map[y_origin + 1][x_origin] == search);
+    }
+    
+    /**
+     * Check if the caracthere is present on the X axis of the position. ( - 1 && 1 )
+     * @param map The map where to look
+     * @param x_origin The x position
+     * @param y_origin The y position
+     * @param search The character to search
+     * @return TRUE if the character is present on both side, false if he is not present
+     */
+    public static boolean checkXBothSide(char[][] map, int x_origin, int y_origin,
+                                            char search) {
+        return (x_origin - 1 >= 0 && map[y_origin][x_origin - 1] == search) && 
+               (x_origin + 1 < map[y_origin].length && map[y_origin][x_origin + 1] == search);
+    }
+    
+    /**
+     * Check if the caracthere is present on the X or the Y axis of the position. ( - 1 && 1 )
+     * @param map The map where to look
+     * @param x_origin The x position
+     * @param y_origin The y position
+     * @param search The character to search
+     * @return TRUE if the character is present on one of both axis, false if he is not present
+     */
+    public static boolean checkXorYBothSide(char[][] map, int x_origin, int y_origin,
+                                            char search) {
+        return (checkXBothSide(map, x_origin, y_origin, search) || 
+                checkYBothSide(map, x_origin, y_origin, search));
+    }
+    
+    /**
+     * Check if the caracthere is present on the X and Y axis of the position. ( - 1 && 1 )
+     * @param map The map where to look
+     * @param x_origin The x position
+     * @param y_origin The y position
+     * @param search The character to search
+     * @return TRUE if the character is present on both axis, false if he is not present
+     */
+    public static boolean checkXandYBothSide(char[][] map, int x_origin, int y_origin,
+                                            char search) {
+        return (checkXBothSide(map, x_origin, y_origin, search) && 
+                checkYBothSide(map, x_origin, y_origin, search));
     }
     
     public static boolean checkSquareSurrondings(char[][] map, int x_origin,
@@ -148,7 +233,8 @@ public abstract class Utility {
                 System.out.print(map[i][j]);
             }
             System.out.println();
-        }        
+        }
+        System.out.println();        
     }
     
     public static void displayEntity(char[][] map) {
@@ -158,6 +244,7 @@ public abstract class Utility {
             }
             System.out.println();
         }
+        System.out.println();
     }
     
     public static void displayEntityReverseY(char[][] map) {
@@ -166,6 +253,15 @@ public abstract class Utility {
                 System.out.print(map[i][j]);
             }
             System.out.println();
+        }
+        System.out.println();
+    }
+    
+    public static void copyArray(char[][] src, char[][] dst) {
+        for(int y = 0; y < src.length; y++) {
+            for(int x = 0; x < src[y].length; x++) {
+                dst[y][x] = src[y][x];
+            }
         }
     }
     

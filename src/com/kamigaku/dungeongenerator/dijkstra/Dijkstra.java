@@ -1,6 +1,5 @@
 package com.kamigaku.dungeongenerator.dijkstra;
 
-import com.kamigaku.dungeongenerator.utility.Utility;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -15,6 +14,12 @@ public class Dijkstra {
         this._map = theMap;
         this._rules = new ArrayList<>();
         this._nodes = new Node[this._map[0].length * this._map.length];
+    }
+    
+    public Dijkstra(Node[] nodes) {
+        this._map = null;
+        this._rules = null;
+        this._nodes = nodes;
     }
         
     /**
@@ -128,6 +133,15 @@ public class Dijkstra {
     }
     
     /**
+     * Retourne le nombre de points accessibles à partir d'un noeud d'origine
+     * @param origin (int) Le valeur du point d'origine
+     * @return Le nombre de point accessible
+     */
+    public int numberOfAccessiblePoint(int origin) {
+        return allPossiblePath(origin).size();
+    }
+    
+    /**
      * Retourne la position du premier élément correspondant à la recherche par rapport à la position
      * @param origin (Point) Les coordonnées du point d'origine
      * @param toFind Le caractère recherché
@@ -187,8 +201,24 @@ public class Dijkstra {
      * @return Tous les points accessibles
      */
     public ArrayList<Point> allPossiblePath(Point origin) {
-        ArrayList<Point> allPath = new ArrayList<Point>();
+        ArrayList<Point> allPath = new ArrayList<>();
+        resetDistance();
+        unfetchNodes();
         Node originNode = this._nodes[XYValue(origin.x, origin.y, this._map[origin.y].length)];
+        allPossiblePath_fetch(originNode, allPath);
+        return allPath;
+    }
+    
+    /** 
+     * Retourne tous les points accessibles à partir d'un noeud d'origine.
+     * @param origin (int) Le noeud d'origine
+     * @return Tous les points accessibles
+     */
+    public ArrayList<Point> allPossiblePath(int origin) {
+        ArrayList<Point> allPath = new ArrayList<>();
+        resetDistance();
+        unfetchNodes();
+        Node originNode = this._nodes[origin];
         allPossiblePath_fetch(originNode, allPath);
         return allPath;
     }
@@ -197,8 +227,11 @@ public class Dijkstra {
         origin.fetched = true;
         for(int i = 0; i < origin.neighbors.size(); i++) {
             if(!this._nodes[origin.neighbors.get(i)].fetched) {
-                path.add(new Point(XValue(origin.neighbors.get(i), this._map[0].length),
-                        YValue(origin.neighbors.get(i), this._map[0].length)));
+                if(this._map != null)
+                    path.add(new Point(XValue(origin.neighbors.get(i), this._map[0].length),
+                            YValue(origin.neighbors.get(i), this._map[0].length)));
+                else
+                    path.add(new Point(origin.neighbors.get(i), -1));
                 allPossiblePath_fetch(this._nodes[origin.neighbors.get(i)], path);
             }
         }

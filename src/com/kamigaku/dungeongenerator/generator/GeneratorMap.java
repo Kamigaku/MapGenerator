@@ -5,6 +5,7 @@ import com.kamigaku.dungeongenerator.Room;
 import com.kamigaku.dungeongenerator.dijkstra.*;
 import com.kamigaku.dungeongenerator.utility.Utility;
 import java.awt.Point;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -13,10 +14,11 @@ public class GeneratorMap {
     // [TEMPORARY VARIABLES]
     private char[][] _map;
     private ArrayList<GeneratorRoom> _rooms;
+    private Room _originRoom;
     
     
     // [MAP PROPERTIES]
-    private int _numberRoom;
+    private final int _numberRoom;
     private long _seed;
     private Random _random;
     private Point _propWidthRoom;
@@ -33,7 +35,6 @@ public class GeneratorMap {
                 Integer.parseInt("" + _stringMapSeed.charAt(_stringMapSeed.length() - 2)) * 10 + 10;
         int maxNumberRoom = (Integer.parseInt("" + _stringMapSeed.charAt(_stringMapSeed.length() - 3)) + 
                 Integer.parseInt("" + _stringMapSeed.charAt(_stringMapSeed.length() - 4)) * 10) + minNumberRoom + 10;
-        //System.out.println(_stringMapSeed + " / " + minNumberRoom + " / " + maxNumberRoom);
         this._numberRoom = Utility.nextInt(this._random, minNumberRoom, maxNumberRoom);
         this.executeProcess();
     }
@@ -49,6 +50,11 @@ public class GeneratorMap {
         this.init(seed);
         this._propHeightRoom = new Point(minSizeRoomHeight, maxSizeRoomHeight);
         this._propWidthRoom = new Point(minSizeRoomWidth, maxSizeRoomHeight);
+        int minNumberRoom = Integer.parseInt("" + _stringMapSeed.charAt(_stringMapSeed.length() - 1)) + 
+                Integer.parseInt("" + _stringMapSeed.charAt(_stringMapSeed.length() - 2)) * 10 + 10;
+        int maxNumberRoom = (Integer.parseInt("" + _stringMapSeed.charAt(_stringMapSeed.length() - 3)) + 
+                Integer.parseInt("" + _stringMapSeed.charAt(_stringMapSeed.length() - 4)) * 10) + minNumberRoom + 10;
+        this._numberRoom = Utility.nextInt(this._random, minNumberRoom, maxNumberRoom);
         this.executeProcess();
     }
     
@@ -62,17 +68,40 @@ public class GeneratorMap {
         this.executeProcess();
     }
     
+    public GeneratorMap(int minNumberRoom, int maxNumberRoom) {
+        this.init(Instant.now().getEpochSecond());
+        this._numberRoom = Utility.nextInt(this._random, minNumberRoom, maxNumberRoom);
+        this.executeProcess();
+    }
+    
+    public GeneratorMap(int minSizeRoomWidth, int maxSizeRoomWidth, 
+                        int minSizeRoomHeight, int maxSizeRoomHeight) {
+        this.init(Instant.now().getEpochSecond());
+        this._propHeightRoom = new Point(minSizeRoomHeight, maxSizeRoomHeight);
+        this._propWidthRoom = new Point(minSizeRoomWidth, maxSizeRoomHeight);
+        int minNumberRoom = Integer.parseInt("" + _stringMapSeed.charAt(_stringMapSeed.length() - 1)) + 
+                Integer.parseInt("" + _stringMapSeed.charAt(_stringMapSeed.length() - 2)) * 10 + 10;
+        int maxNumberRoom = (Integer.parseInt("" + _stringMapSeed.charAt(_stringMapSeed.length() - 3)) + 
+                Integer.parseInt("" + _stringMapSeed.charAt(_stringMapSeed.length() - 4)) * 10) + minNumberRoom + 10;
+        this._numberRoom = Utility.nextInt(this._random, minNumberRoom, maxNumberRoom);
+        this.executeProcess();
+    }
+    
+    public GeneratorMap(int minNumberRoom, int maxNumberRoom, 
+                        int minSizeRoomWidth, int maxSizeRoomWidth, 
+                        int minSizeRoomHeight, int maxSizeRoomHeight) {
+        this.init(Instant.now().getEpochSecond());
+        this._numberRoom = Utility.nextInt(this._random, minNumberRoom, maxNumberRoom);
+        this._propHeightRoom = new Point(minSizeRoomHeight, maxSizeRoomHeight);
+        this._propWidthRoom = new Point(minSizeRoomWidth, maxSizeRoomHeight);
+        this.executeProcess();
+    }
+    
     private void init(long seed) {
         this._seed = seed;
         this._random = new Random(seed);
         this._rooms = new ArrayList<>();
-        /* UNCOMMENT IF NEEDED TO DO SOMETHING WITH THE FIRST RANDOM LIKE MAP TYPE, ETC... */
         this._stringMapSeed = "" + this._random.nextLong();
-        //if(infoMapSeed.charAt(0) == '-') {
-        //    infoMapSeed = infoMapSeed.substring(1);
-        //}
-        //int type = Integer.parseInt(
-        //        "" + infoMapSeed.charAt(infoMapSeed.length() - 1));             // Map type
     }
     
     private void executeProcess() {
@@ -85,7 +114,7 @@ public class GeneratorMap {
         int x = (map[0].length / 2) - (r1._width / 2);
         int y = (map.length / 2) - (r1._height / 2);
         for(int i = 0; i < this._rooms.size(); i++) {
-            this.placeRoom(map, this._rooms.get(i), x, y);
+            map = this.placeRoom(map, this._rooms.get(i), x, y);
             borders.addAll(this._rooms.get(i).getWorldBorders());
             for(int j = 0; j < borders.size(); j++) {
                 if(Utility.numberAllAroundSurrondings(map, borders.get(i).x, borders.get(i).y, '#') < 2) {
@@ -99,12 +128,12 @@ public class GeneratorMap {
             y = p.y;
         }
         borders.clear();
+        map = this.cleanMap(map);                                               // Retire les murs qui ne sont pas nécessaires
         this.reduceMap(map);                                                    // Réduit la taille de la carte
-        this.cleanMap();                                                        // Retire les murs qui ne sont pas nécessaires
         this.createRooms();                                                     // Créer les vraies salles
         this.connectRooms();                                                    // Connecte les salles entres elles
+        this.cleanMap(this._map);                                               // Retire les murs qui ne sont pas nécessaires
         this.createEntrance();                                                  // Créer l'entrée du donjon
-        //Utility.displayEntityReverseY(this._map);
         this.boundRooms();                                                      // Connecte les salles avec leurs voisines
         //this.entryToExit();                                                   // Détermine le chemin entre l'entrée et la salle finale
         this.m = new Map(this._map, this.tRoom);
@@ -143,10 +172,26 @@ public class GeneratorMap {
             height += rooms.get(i)._height;
             width += rooms.get(i)._width;
         }
+        height += 1;
+        width += 1;
         return new Point(width, height);
     }
     
-    private void placeRoom(char[][] map, GeneratorRoom r, int x_ori, int y_ori) {
+    private char[][] placeRoom(char[][] map, GeneratorRoom r, int x_ori, int y_ori) {
+        if(x_ori + r._width > map[0].length) {
+            char[][] tempMap = new char[map.length][map[0].length];
+            Utility.copyArray(map, tempMap);
+            map = new char[tempMap.length][x_ori + r._width + 1];
+            Utility.fillArray(map, '#');
+            Utility.copyArray(tempMap, map);
+        }
+        if(y_ori + r._height > map.length) {
+            char[][] tempMap = new char[map.length][map[0].length];
+            Utility.copyArray(map, tempMap);
+            map = new char[y_ori + r._height + 1][tempMap[0].length];
+            Utility.fillArray(map, '#');
+            Utility.copyArray(tempMap, map);
+        }
         for(int y = 0; y < r._map.length; y++) {
             for(int x = 0; x < r._map[y].length; x++) {
                 if(r._map[y][x] != '#') {
@@ -155,6 +200,35 @@ public class GeneratorMap {
             }
         }
         r.setOriginXY(x_ori, y_ori);
+        return map;
+    }
+    
+    private char[][] cleanMap(char[][] map) {
+        // Je retire les murs qui n'ont pas lieu d'être
+        for(int y = 1; y < map.length - 1; y++) {
+            for(int x = 1; x < map[y].length - 1; x++) {
+                if(map[y][x] == 'W') {
+                    if(!Utility.checkSquareSurrondings(map, x, y, ' '))
+                        map[y][x] = '#';
+                    else {
+                        char[][] square = new char[3][3];
+                        for(int i = 0; i < 3; i++)
+                            for(int j = 0; j < 3; j++)
+                                square[i][j] = map[y + (-1 + i)][x + (-1 + j)];
+                        Square preUpdate = new Square(square);
+                        square[1][1] = ' ';
+                        Square postUpdate = new Square(square);
+                        if(Square.compareSquare(preUpdate, postUpdate)) {
+                            if(Utility.checkXorYSurrondings(map, x, y, ' '))
+                                map[y][x] = ' ';
+                            else
+                                map[y][x] = '#';
+                        }
+                    }
+                }
+            }
+        }
+        return map;
     }
     
     private void reduceMap(char[][] map) {     
@@ -184,29 +258,6 @@ public class GeneratorMap {
         for(int y = heightMinRoom; y <= heightMaxRoom; y++) {
             for(int x = widthMinRoom; x <= widthMaxRoom; x++) {
                 this._map[y - heightMinRoom][x - widthMinRoom] = map[y][x];
-            }
-        }
-    }
-    
-    private void cleanMap() {
-        // Je retire les murs qui n'ont pas lieu d'être et si un sol est mal placé
-        for(int y = 1; y < this._map.length - 1; y++) {
-            for(int x = 1; x < this._map[y].length - 1; x++) {
-                if(this._map[y][x] == 'W') {
-                    char[][] square = new char[3][3];
-                    for(int i = 0; i < 3; i++)
-                        for(int j = 0; j < 3; j++)
-                            square[i][j] = this._map[y + (-1 + i)][x + (-1 + j)];
-                    Square preUpdate = new Square(square);
-                    square[1][1] = ' ';
-                    Square postUpdate = new Square(square);
-                    if(Square.compareSquare(preUpdate, postUpdate)) {
-                        if(Utility.checkXorYSurrondings(this._map, x, y, ' '))
-                            this._map[y][x] = ' ';
-                        else
-                            this._map[y][x] = '#';
-                    }
-                }
             }
         }
     }
@@ -259,13 +310,13 @@ public class GeneratorMap {
                             this._map[y + 1][x + (1 * result)] = this._map[y + 1][x + (2 * result)] = 'W';
                             this._map[y - 1][x + (-1 * result)] = this._map[y - 1][x + (-2 * result)] = 'W';
                             break;
-                        /*case 2:
-                            System.out.println("Implement 2 here");
-                            this._map[y][x] = 'G';
-                            Utility.displayEntity(this._map);
-                            System.out.println("");
-                            //throw new UnsupportedOperationException();
-                            break;*/
+                        case 2:
+                            for(int i = -1; i <= 1; i += 2) {
+                                this._map[y][x] = this._map[y][x - 1] = this._map[y][x + 1] = ' ';
+                                this._map[y + 1][x + (1 * i)] = this._map[y + 1][x + (2 * i)] = 'W';
+                                this._map[y - 1][x + (-1 * i)] = this._map[y - 1][x + (-2 * i)] = 'W';
+                            }
+                            break;
                     }
                 }
             }
@@ -286,7 +337,8 @@ public class GeneratorMap {
             }
         }
         this.tRoom.get(indexRooms.x).isEntry = true;
-        this.tRoom.get(indexRooms.x).isExit = true;
+        this.tRoom.get(indexRooms.y).isExit = true;
+        this._originRoom = this.tRoom.get(indexRooms.x);
     }
 
     private void boundRooms() {
@@ -301,14 +353,6 @@ public class GeneratorMap {
                     r2.addNeighboorRoom(r1);
                 }
             }
-            // @TODO
-            // Faire en sorte que les deux mêmes salles ne soient pas connectés, pour cela il suffira
-            // de regarder deux choses au début : si la salle courante ne possède qu'une connection, il faut voir
-            // si les connection de la connection possède plus de 2 connexions. Si non créer un chemin vers la room la plus
-            // proche. Néanmoins il sera possible par la suite que trois salles soient isolés dans un coin
-            // et possèdent donc chacune 2 connections sans jamais rejoindre le chemin principale
-            // il faudra donc vérifier une fois le chemin principale fait si des salles ne sont pas isolés 
-            // dans l'arbre de parcours finale
             if(r1.getConnections().isEmpty()) { // Si une salle ne possède pas de voisin direct
                 char[][] copyMap = new char[this._map.length][this._map[0].length];
                 Utility.fillArray(copyMap, '#');
@@ -340,6 +384,77 @@ public class GeneratorMap {
                     connectTwoRooms(this.tRoom.get(i), r2, destination);
             }
         }
+        
+        // @TODO : faire une sorte d'arbre pour atteindre la room de fin
+        boolean over = false;
+        do {
+            Node[] nodes = new Node[this.tRoom.size()];
+            ArrayList<Point> allMapRooms = new ArrayList<>();
+            for(int i = 0; i < this.tRoom.size(); i++) {
+                nodes[i] = new Node(i);
+                if(!tRoom.get(i).isEntry)
+                    allMapRooms.add(new Point(i, -1));
+                for(int j = 0; j < this.tRoom.get(i).getConnections().size(); j++) {
+                    int index = this.tRoom.indexOf(this.tRoom.get(i).getConnections().get(j));
+                    nodes[i].addNeighbors(index);
+                }
+            }
+            int indexOrigin = this.tRoom.indexOf(this._originRoom); // je récupère l'entrée
+            Dijkstra dijkstra = new Dijkstra(nodes);
+            ArrayList<Point> connectToOrigin = dijkstra.allPossiblePath(indexOrigin); // je recupère toutes les salles connectés à l'origien
+            if(connectToOrigin.size() < (allMapRooms.size() - 1)) { // si je n'ai pas autant de rooms cela signifie qu'elles ne sont pas toutes connectées
+                ArrayList<Point> nonConnectToOrigin = new ArrayList<>(allMapRooms); // je copie toutes les rooms
+                nonConnectToOrigin.removeAll(connectToOrigin); // je retire celles qui sont connectés
+                if(connectToOrigin.size() < nonConnectToOrigin.size())
+                    this.iterationOnArrayRoom(connectToOrigin, nonConnectToOrigin);
+                else
+                    this.iterationOnArrayRoom(nonConnectToOrigin, connectToOrigin);
+            }
+            else {
+                over = true;
+            }
+        } while(!over);
+        
+    }
+    
+    private void iterationOnArrayRoom(ArrayList<Point> a1, ArrayList<Point> a2) {
+        Room r1 = null;
+        Room r2 = null;
+        Point closestPoint = null;
+        for(int i = 0; i < a1.size(); i++) {
+            Room tempR1 = this.tRoom.get(a1.get(i).x);
+            char[][] copyMap = new char[this._map.length][this._map[0].length];
+            Utility.fillArray(copyMap, '#');
+            for(int j = 0; j < this.tRoom.size(); j++) {
+                if(a2.contains(new Point(j, -1))) {
+                    ArrayList<Point> points = this.tRoom.get(j).getBordersWithoutAngles();
+                    for(int k = 0; k < points.size(); k++) {
+                        copyMap[points.get(k).y][points.get(k).x] = 'W';
+                    }
+                }
+            }
+            copyMap[tempR1.origin.y][tempR1.origin.x] = 'O';
+            Dijkstra dis = new Dijkstra(copyMap);
+            dis.addRule(new Rule('O', '#', true, false));
+            dis.addRule(new Rule('O', 'W', true, false));
+            dis.addRule(new Rule('#', '#', true, false));
+            dis.addRule(new Rule('#', 'W', true, false));
+            dis.addRule(new Rule('W', '#', true, false));
+            dis.createNodes(false);
+            Point destination = dis.findFirst(tempR1.origin, 'W');
+            if(closestPoint == null || 
+               destination.distance(tempR1.origin) < closestPoint.distance(r1.origin)) {
+                r1 = tempR1;
+                closestPoint = new Point(destination.x, destination.y);
+            }
+        }
+        for(int j = 0; j < this.tRoom.size(); j++) {
+            if(this.tRoom.get(j).getAllPoints().contains(closestPoint)) {
+                r2 = this.tRoom.get(j);
+                break;
+            }
+        }
+        connectTwoRooms(r1, r2, closestPoint);
     }
     
     private void connectTwoRooms(Room r1, Room r2, Point destination) {
@@ -362,8 +477,14 @@ public class GeneratorMap {
                 if((aCor.y + 1) < this._map.length && this._map[aCor.y + 1][aCor.x] != ' ') 
                     this._map[aCor.y + 1][aCor.x] = 'W'; 
             }
-            // @TODO : A optimiser ci-dessous, voir cas génération avec 1, une porte se retrouve au milieu de tout
-            this._map[corridor.get(corridor.size() - 1).y][corridor.get(corridor.size() - 1).x] = 'D';
+            for(int i = 0; i < corridor.size() - 1; i++) {
+                if(Utility.checkXorYBothSide(this._map, corridor.get(i).x, corridor.get(i).y, 'W')) {
+                    this._map[corridor.get(i).y][corridor.get(i).x] = 'D';
+                    corridor = new ArrayList<>(corridor.subList(0, i));
+                    break;
+                }
+            }
+            // @TODO : créer un object connection contenant le chemin (corridor)
             r1.addNeighboorRoom(r2);
             r2.addNeighboorRoom(r1);
         }

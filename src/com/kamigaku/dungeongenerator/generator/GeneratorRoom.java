@@ -58,14 +58,19 @@ public class GeneratorRoom {
             this.connectRoom(map);
             this.reduceMap(map);
             this.generateBorders();
-            //System.out.println("=========== Room generated =============");
         }
     }
     
     private ArrayList<Point> generatePoints(char[][] map, int width, int height) {
         //System.out.println("Width : " + width + " - Height : " + height);
+        int numberOfPoints = 0;
+        if(width + height < 10)
+            numberOfPoints = 3;
+        else if(width + height < 30)
+            numberOfPoints = 6;
+        else numberOfPoints = 9;
         ArrayList<Point> points = new ArrayList<Point>();
-        for(int i = 0; i < 6; i++) {
+        for(int i = 0; i < numberOfPoints; i++) {
             int cX = Utility.nextInt(this._random, 0, width);
             int cY = Utility.nextInt(this._random, 0, height);
             boolean found = false;
@@ -104,8 +109,8 @@ public class GeneratorRoom {
     }
     
     public boolean mapIsValid(char[][] map) {
-        for(int y = 0; y < map.length; y++) {
-            for(int x = 0; x < map[y].length; x++) {
+        for(int y = 1; y < map.length - 1; y++) {
+            for(int x = 1; x < map[y].length - 1; x++) {
                 if(map[y][x] == ' ' && !Utility.checkXorYSurrondings(map, x, y, '#')) 
                     return true;
             }
@@ -115,7 +120,6 @@ public class GeneratorRoom {
     }
     
     private void drawBetween2Points(char[][] map, Point p1, Point p2) {
-        System.out.println("Drawing between " + p1 + " and " + p2);
         int directionY = (p2.y - p1.y) < 0 ? -1 : ((p2.y - p1.y) == 0 ? 0 : 1);
         int directionX = (p2.x - p1.x) < 0 ? -1 : ((p2.x - p1.x) == 0 ? 0 : 1);
         map[p1.y][p1.x] = 'W';
@@ -211,14 +215,11 @@ public class GeneratorRoom {
                             map[y - 1][x + (-1 * result)] = map[y - 1][x + (-2 * result)] = 'W';
                             break;
                         case 2:
-                            // @TODO : check si cela fonctionne bien
-                            System.out.println("[GeneratorRoom - connectRoom] Case of two (" + x + " / " + y + ")");
                             for(int i = -1; i <= 1; i += 2) {
                                 map[y][x] = map[y][x - 1] = map[y][x + 1] = ' ';
                                 map[y + 1][x + (1 * i)] = map[y + 1][x + (2 * i)] = 'W';
                                 map[y - 1][x + (-1 * i)] = map[y - 1][x + (-2 * i)] = 'W';
                             }
-                            Utility.displayEntity(map);
                             break;
                     }
                 }
