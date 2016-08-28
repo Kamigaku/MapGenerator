@@ -8,6 +8,7 @@ import java.awt.Point;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Random;
+import javax.sound.midi.Soundbank;
 
 public class GeneratorMap {
   
@@ -105,8 +106,11 @@ public class GeneratorMap {
     }
     
     private void executeProcess() {
+        System.out.println("1/ Generating room");
         this.generateRooms();                                                   // Générer les rooms
+        System.out.println("2/ Summing room size");
         Point sizeMap = sumSizeRooms(_rooms);
+        System.out.println("3/ Placing rooms");
         char[][] map = new char[sizeMap.y][sizeMap.x];
         Utility.fillArray(map, '#');
         ArrayList<Point> borders = new ArrayList<>();
@@ -128,11 +132,18 @@ public class GeneratorMap {
             y = p.y;
         }
         borders.clear();
+        System.out.println("4/ Cleaning map");
         map = this.cleanMap(map);                                               // Retire les murs qui ne sont pas nécessaires
+        System.out.println("5/ Reducing map");
         this.reduceMap(map);                                                    // Réduit la taille de la carte
+        Utility.displayEntity(this._map);
+        System.out.println("6/ Creating rooms");
         this.createRooms();                                                     // Créer les vraies salles
+        System.out.println("7/ Connecting rooms");
         this.connectRooms();                                                    // Connecte les salles entres elles
+        System.out.println("8/ Cleaning map");
         this.cleanMap(this._map);                                               // Retire les murs qui ne sont pas nécessaires
+        System.out.println("9/ Creating entrance");
         this.createEntrance();                                                  // Créer l'entrée du donjon
         this.boundRooms();                                                      // Connecte les salles avec leurs voisines
         this.createRooms();
