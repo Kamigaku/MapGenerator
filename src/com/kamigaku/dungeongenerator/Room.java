@@ -1,5 +1,6 @@
 package com.kamigaku.dungeongenerator;
 
+import com.kamigaku.dungeongenerator.Corridor.CorridorType;
 import com.kamigaku.dungeongenerator.utility.Utility;
 import java.awt.Point;
 import java.util.ArrayList;
@@ -20,7 +21,7 @@ public class Room {
     public final Point origin;
     
     public Room(char[][] mainMap, ArrayList<Point> ground, ArrayList<Point> walls, Random r) {
-        this._bordersWithoutAngle = new ArrayList<Point>();
+        this._bordersWithoutAngle = new ArrayList<>();
         this._ground = ground;
         this._connections = new ArrayList<Room>();
         this._walls = walls;
@@ -59,5 +60,39 @@ public class Room {
         points.addAll(this._walls);
         return points;
     }
-    
+
+    @Override
+    public String toString() {
+        System.out.println("Je possède : " + this._connections.size() + " voisins.");
+        int minHeight = Integer.MAX_VALUE;
+        int maxHeight = -1;
+        int minWidth = Integer.MAX_VALUE;
+        int maxWidth = -1;
+        for(int i = 0; i < this._ground.size(); i++) {
+            Point p = this._ground.get(i);
+            if(p.x < minWidth) minWidth = p.x;
+            else if(p.x > maxWidth) maxWidth = p.x;
+            if(p.y < minHeight) minHeight = p.y;
+            else if(p.y > maxHeight) maxHeight = p.y;
+        }
+        for(int i = 0; i < this._walls.size(); i++) {
+            Point p = this._walls.get(i);
+            if(p.x < minWidth) minWidth = p.x;
+            else if(p.x > maxWidth) maxWidth = p.x;
+            if(p.y < minHeight) minHeight = p.y;
+            else if(p.y > maxHeight) maxHeight = p.y;
+        }
+        char[][] map = new char[maxHeight - minHeight + 1][maxWidth - minWidth + 1];
+        Utility.fillArray(map, '#');
+        for(int i = 0; i < this._ground.size(); i++) {
+            Point p = this._ground.get(i);
+            map[p.y - minHeight][p.x - minWidth] = ' ';
+        }
+        for(int i = 0; i < this._walls.size(); i++) {
+            Point p = this._walls.get(i);
+            map[p.y - minHeight][p.x - minWidth] = 'W';
+        }
+        Utility.displayEntity(map);
+        return "";
+    }    
 }

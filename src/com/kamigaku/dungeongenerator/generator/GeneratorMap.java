@@ -64,7 +64,7 @@ public class GeneratorMap {
         this.init(seed);
         this._numberRoom = Utility.nextInt(this._random, minNumberRoom, maxNumberRoom);
         this._propHeightRoom = new Point(minSizeRoomHeight, maxSizeRoomHeight);
-        this._propWidthRoom = new Point(minSizeRoomWidth, maxSizeRoomHeight);
+        this._propWidthRoom = new Point(minSizeRoomWidth, maxSizeRoomWidth);
         this.executeProcess();
     }
     
@@ -135,7 +135,10 @@ public class GeneratorMap {
         this.cleanMap(this._map);                                               // Retire les murs qui ne sont pas nécessaires
         this.createEntrance();                                                  // Créer l'entrée du donjon
         this.boundRooms();                                                      // Connecte les salles avec leurs voisines
-        //this.entryToExit();                                                   // Détermine le chemin entre l'entrée et la salle finale
+        this.createRooms();
+        this.createEntrance();
+        this.boundRooms();
+        this.entryToExit();                                                   // Détermine le chemin entre l'entrée et la salle finale
         this.m = new Map(this._map, this.tRoom);
     }
     
@@ -266,6 +269,7 @@ public class GeneratorMap {
         Dijkstra d = new Dijkstra(this._map);
         d.addRule(new Rule(' ', 'W', true, true));
         d.addRule(new Rule(' ', ' ', true, false));
+        d.addRule(new Rule(' ', 'D', true, false));
         d.createNodes(true);
         Node[] nodes = d.getNodes();
         this.tRoom = new ArrayList<>();
@@ -275,25 +279,26 @@ public class GeneratorMap {
                 int yPos = Dijkstra.YValue(i, this._map[0].length);
                 ArrayList<Point> wall = new ArrayList<>();
                 ArrayList<Point> ground = new ArrayList<>();
+                ArrayList<Point> door = new ArrayList<>();
                 ground.add(new Point(xPos, yPos));
-                fetchNode(nodes[i], nodes, ground, wall);
-
+                fetchNode(nodes[i], nodes, ground, wall, door);
                 this.tRoom.add(new Room(this._map, ground, wall, this._random));
             }
         }
     }
     
-    private void fetchNode(Node origin, Node[] nodes, ArrayList<Point> ground, ArrayList<Point> wall) {
+    private void fetchNode(Node origin, Node[] nodes, ArrayList<Point> ground, ArrayList<Point> wall, ArrayList<Point> door) {
         origin.fetched = true;
         for(int i = 0; i < origin.neighbors.size(); i++) {
             Point p = new Point(Dijkstra.XValue(origin.neighbors.get(i), this._map[0].length), 
                                 Dijkstra.YValue(origin.neighbors.get(i), this._map[0].length));
-            if(this._map[p.y][p.x] == 'W') {
-                wall.add(p);                
-            }
+            if(this._map[p.y][p.x] == 'W')
+                wall.add(p);  
+            if(this._map[p.y][p.x] == 'D')
+                door.add(p);
             else if(this._map[p.y][p.x] == ' ' && !nodes[origin.neighbors.get(i)].fetched) {
                 ground.add(p);
-                fetchNode(nodes[origin.neighbors.get(i)], nodes, ground, wall);
+                fetchNode(nodes[origin.neighbors.get(i)], nodes, ground, wall, door);
             }
         }
     }
@@ -468,30 +473,54 @@ public class GeneratorMap {
             for(int k = 0; k < corridor.size(); k++) {
                 Point aCor = corridor.get(k);
                 this._map[aCor.y][aCor.x] = ' ';
-                if((aCor.x - 1) >= 0 && this._map[aCor.y][aCor.x - 1] != ' ') 
-                    this._map[aCor.y][aCor.x - 1] = 'W';
-                if((aCor.x + 1) < this._map[aCor.y].length && this._map[aCor.y][aCor.x + 1] != ' ') 
-                    this._map[aCor.y][aCor.x + 1] = 'W';
-                if((aCor.y - 1) >= 0 && this._map[aCor.y - 1][aCor.x] != ' ') 
-                    this._map[aCor.y - 1][aCor.x] = 'W';
-                if((aCor.y + 1) < this._map.length && this._map[aCor.y + 1][aCor.x] != ' ') 
-                    this._map[aCor.y + 1][aCor.x] = 'W'; 
+                Utility.searchAndReplace(this._map, aCor.x, aCor.y, '#', 'W');
             }
             for(int i = 0; i < corridor.size() - 1; i++) {
                 if(Utility.checkXorYBothSide(this._map, corridor.get(i).x, corridor.get(i).y, 'W')) {
-                    this._map[corridor.get(i).y][corridor.get(i).x] = 'D';
-                    corridor = new ArrayList<>(corridor.subList(0, i));
+                    this._map[corridor.get(i).y][corridor.get(i).x] = 'W';
                     break;
                 }
             }
-            // @TODO : créer un object connection contenant le chemin (corridor)
             r1.addNeighboorRoom(r2);
             r2.addNeighboorRoom(r1);
         }
     }
     
     private void entryToExit() {
-        
+        /*ArrayList<Room> allRooms = new ArrayList<>(this.tRoom);
+        allRooms.remove(this._originRoom);
+        HashMap<Room, ArrayList<Room>> roomConnections;
+        while(allRooms.size() >= 0) {
+            Room currentRoom = allRooms.get(0);
+            ArrayList<Room> connectedRooms = currentRoom.getConnections();
+            long seed = currentRoom.getSeed();
+        }*/
+        Node[] nodes = new Node[this.tRoom.size()];
+        ArrayList<Point> allMapRooms = new ArrayList<>();
+        for(int i = 0; i < this.tRoom.size(); i++) {
+            nodes[i] = new Node(i);
+            if(!tRoom.get(i).isEntry)
+                allMapRooms.add(new Point(i, -1));
+            for(int j = 0; j < this.tRoom.get(i).getConnections().size(); j++) {
+                int index = this.tRoom.indexOf(this.tRoom.get(i).getConnections().get(j));
+                nodes[i].addNeighbors(index);
+            }
+            //this._map[this.tRoom.get(i).origin.y][this.tRoom.get(i).origin.x] = Character.forDigit(i, 10);
+        }
+        int indexOrigin = this.tRoom.indexOf(this._originRoom); // je récupère l'entrée
+        Dijkstra dijkstra = new Dijkstra(nodes);
+        ArrayList<ArrayList<Integer>> treePath = dijkstra.getTreePath(indexOrigin); // je recupère toutes les salles connectés à l'origien
+        for (int i = 0; i < treePath.size() - 1; i++) {
+            ArrayList<Integer> get = treePath.get(i);
+            Integer i1 = get.get(get.size() - 1);
+            Integer i2 = get.get(get.size() - 2);
+            Room r1 = this.tRoom.get(i1);
+            Room r2 = this.tRoom.get(i2);
+            ArrayList<Point> commonPoints = Utility.commonCoords(
+                    r1.getBordersWithoutAngles(), r2.getBordersWithoutAngles());
+            if(commonPoints.size() > 0)
+                this._map[commonPoints.get(0).y][commonPoints.get(0).x] = 'D';
+        }
     }
     
     public Map getMap() {

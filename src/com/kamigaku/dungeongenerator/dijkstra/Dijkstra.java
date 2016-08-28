@@ -237,6 +237,26 @@ public class Dijkstra {
         }
     }
     
+    public ArrayList<ArrayList<Integer>> getTreePath(int origin) {
+        ArrayList<ArrayList<Integer>> path = new ArrayList<>();
+        ArrayList<Integer> values = new ArrayList<>();
+        treeFetch(this._nodes[origin], path, values);
+        return path;
+    }
+    
+    private void treeFetch(Node origin, ArrayList<ArrayList<Integer>> tree, ArrayList<Integer> values) {
+        // trouvé un autre moyen pour le chemin
+        values.add(origin.value);
+        origin.fetched = true;
+        for(int i = 0; i < origin.neighbors.size(); i++) {
+            if(!this._nodes[origin.neighbors.get(i)].fetched) {
+                treeFetch(this._nodes[origin.neighbors.get(i)], tree, values);
+            }
+        }
+        tree.add(new ArrayList<>(values));
+        values.remove(new Integer(origin.value));
+    }
+    
     public void unfetchNodes() {
         for(int j = 0; j < this._nodes.length; j++)
             if(this._nodes[j] != null) this._nodes[j].fetched = false;
