@@ -14,8 +14,10 @@ public class Test {
         //m = new GeneratorMap(12387 * 1000 + 2, 800, 1000, 20, 40, 20, 40).getMap();
         //System.out.println("Running : " + (i+1) + " / 1000");
         //Utility.displayEntity(m.getMap());
-        m = new GeneratorMap(12348014197411l).getMap();
-        Utility.displayEntity(m.getMap());
+        for(int i = 0; i < 10; i++) {
+            long current = System.currentTimeMillis();
+        m = new GeneratorMap(1234801419 + (i * 10)).getMap();
+        //Utility.displayEntity(m.getMap());
         /*m = new GeneratorMap(10, 30).getMap();
         Utility.displayEntity(m.getMap());*/
         /*m = new GeneratorMap(1234897411l, 20, 36).getMap();
@@ -30,6 +32,8 @@ public class Test {
         Utility.displayEntity(m.getMap());*/
         /*m = new GeneratorMap(1472206212l, 40, 80, 20, 40, 20, 50).getMap();
         Utility.displayEntity(m.getMap());*/
+        System.out.println(System.currentTimeMillis() - current + " ms");
+        }
     }
     
 }

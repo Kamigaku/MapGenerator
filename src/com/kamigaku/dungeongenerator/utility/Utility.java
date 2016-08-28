@@ -226,17 +226,17 @@ public abstract class Utility {
     public static void searchAndReplace(char[][] map, int x, int y, char search, char replace) {
         if((x - 1) >= 0 && map[y][x - 1] == search) 
             map[y][x - 1] = replace;
-        if((x + 1) < map[y].length && map[y][x + 1] == search) 
+        if((x + 1) < (map[y].length - 1) && map[y][x + 1] == search) 
             map[y][x + 1] = replace;
         if((y - 1) >= 0 && map[y - 1][x] == search) 
             map[y - 1][x] = replace;
-        if((y + 1) < map.length && map[y + 1][x] == search) 
+        if((y + 1) < (map.length - 1) && map[y + 1][x] == search) 
             map[y + 1][x] = replace; 
-        if((y + 1) < map.length && (x + 1) < map[x].length && map[y + 1][x + 1] == search)  // top right
+        if((y + 1) < (map.length - 2) && (x + 1) < (map[y].length - 2) && map[y + 1][x + 1] == search)  // top right
             map[y + 1][x + 1] = replace;
-        if((y + 1) < map.length && (x - 1) >= 0 && map[y + 1][x - 1] == search) // top left
+        if((y + 1) < (map.length - 1) && (x - 1) >= 0 && map[y + 1][x - 1] == search) // top left
             map[y + 1][x - 1] = replace;
-        if((y - 1) >= 0 && (x + 1) < map[x].length && map[y - 1][x + 1] == search) // bot right
+        if((y - 1) >= 0 && (x + 1) < (map[y].length - 1) && map[y - 1][x + 1] == search) // bot right
             map[y - 1][x + 1] = replace;
         if((y - 1) >= 0 && (x - 1) >= 0 && map[y - 1][x - 1] == search) // bot left
             map[y - 1][x - 1] = replace;

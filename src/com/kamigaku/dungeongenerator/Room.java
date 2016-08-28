@@ -1,10 +1,11 @@
 package com.kamigaku.dungeongenerator;
 
-import com.kamigaku.dungeongenerator.Corridor.CorridorType;
 import com.kamigaku.dungeongenerator.utility.Utility;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Random;
+import javafx.geometry.Bounds;
 
 public class Room {
      
@@ -12,6 +13,8 @@ public class Room {
     private final ArrayList<Room> _connections;
     private final ArrayList<Point> _ground;
     private final ArrayList<Point> _walls;
+    
+    private final Rectangle _rectangle;
     
     public boolean isEntry = false;
     public boolean isExit = false;
@@ -23,15 +26,30 @@ public class Room {
     public Room(char[][] mainMap, ArrayList<Point> ground, ArrayList<Point> walls, Random r) {
         this._bordersWithoutAngle = new ArrayList<>();
         this._ground = ground;
-        this._connections = new ArrayList<Room>();
+        this._connections = new ArrayList<>();
         this._walls = walls;
+        
+        int minX = Integer.MAX_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxX = 0;
+        int maxY = 0;
         for(int i = 0; i < walls.size(); i++) {
-            if(!Utility.checkXandYSurrondings(mainMap, walls.get(i).x, walls.get(i).y, 'W')) {
-                this._bordersWithoutAngle.add(new Point(walls.get(i).x, walls.get(i).y));
+            Point wall = walls.get(i);
+            if(wall.x < minX)
+                minX = wall.x;
+            if(wall.x > maxX)
+                maxX = wall.x;
+            if(wall.y < minY)
+                minY = wall.y;
+            if(wall.y > maxY)
+                maxY = wall.y;
+            if(!Utility.checkXandYSurrondings(mainMap, wall.x, wall.y, 'W')) {
+                this._bordersWithoutAngle.add(new Point(wall.x, wall.y));
             }
         }
         this._seed = r.nextLong();
         this.origin = ground.get(0);
+        this._rectangle = new Rectangle(minX - 1, minY - 1, maxX - minX + 1, maxY - minY + 1);
     }
     
     public void addNeighboorRoom(Room r) {
@@ -59,6 +77,10 @@ public class Room {
         points.addAll(this._ground);
         points.addAll(this._walls);
         return points;
+    }
+    
+    public Rectangle getRectangle() {
+        return this._rectangle;
     }
 
     @Override
@@ -94,5 +116,5 @@ public class Room {
         }
         Utility.displayEntity(map);
         return "";
-    }    
+    }
 }

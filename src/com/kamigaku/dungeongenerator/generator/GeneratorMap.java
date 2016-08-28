@@ -351,11 +351,13 @@ public class GeneratorMap {
             Room r1 = this.tRoom.get(i);
             for(int j = i + 1; j < this.tRoom.size(); j++) {
                 Room r2 = this.tRoom.get(j);
-                ArrayList<Point> commonCoords = Utility.commonCoords(r1.getBordersWithoutAngles(),
-                                                                       r2.getBordersWithoutAngles());
-                if(commonCoords.size() > 0) {
-                    r1.addNeighboorRoom(r2);
-                    r2.addNeighboorRoom(r1);
+                if(r1.getRectangle().intersects(r2.getRectangle())) {
+                    ArrayList<Point> commonCoords = Utility.commonCoords(r1.getBordersWithoutAngles(),
+                                                                           r2.getBordersWithoutAngles());
+                    if(commonCoords.size() > 0) {
+                        r1.addNeighboorRoom(r2);
+                        r2.addNeighboorRoom(r1);
+                    }
                 }
             }
             if(r1.getConnections().isEmpty()) { // Si une salle ne possède pas de voisin direct
@@ -516,10 +518,12 @@ public class GeneratorMap {
             Integer i2 = get.get(get.size() - 2);
             Room r1 = this.tRoom.get(i1);
             Room r2 = this.tRoom.get(i2);
-            ArrayList<Point> commonPoints = Utility.commonCoords(
-                    r1.getBordersWithoutAngles(), r2.getBordersWithoutAngles());
-            if(commonPoints.size() > 0)
-                this._map[commonPoints.get(0).y][commonPoints.get(0).x] = 'D';
+            if(r1.getRectangle().intersects(r2.getRectangle())) {
+                ArrayList<Point> commonPoints = Utility.commonCoords(
+                        r1.getBordersWithoutAngles(), r2.getBordersWithoutAngles());
+                if(commonPoints.size() > 0)
+                    this._map[commonPoints.get(0).y][commonPoints.get(0).x] = 'D';
+            }
         }
     }
     
