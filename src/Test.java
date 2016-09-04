@@ -15,7 +15,7 @@ public class Test {
         //System.out.println("Running : " + (i+1) + " / 1000");
         //Utility.displayEntity(m.getMap());
         m = new GeneratorMap(12348014197411l, 10, 20).getMap();
-        Utility.displayEntity(m.getMap()); // petit soucis sur un mur qui coupe à travers
+        Utility.displayEntity(m.getMap());
         /*m = new GeneratorMap(10, 30).getMap();
         Utility.displayEntity(m.getMap());*/
         /*m = new GeneratorMap(1234897411l, 20, 36).getMap();
