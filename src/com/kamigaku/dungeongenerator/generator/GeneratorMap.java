@@ -151,6 +151,7 @@ public class GeneratorMap {
         this.boundRooms();
         this.entryToExit();                                                     // Détermine le chemin entre l'entrée et la salle finale
         System.out.println("There is : " + this.tRoom.size());
+        this.roomSizeAffectation();
         this.m = new Map(this._map, this.tRoom);
     }
     
@@ -534,6 +535,25 @@ public class GeneratorMap {
                 if(commonPoints.size() > 0)
                     this._map[commonPoints.get(0).y][commonPoints.get(0).x] = 'D';
             }
+        }
+    }
+    
+    private void roomSizeAffectation() {
+        int total = 0;
+        for(int i = 0; i < this.tRoom.size(); i++) {
+            total += this.tRoom.get(i).getAllGround().size();
+        }
+        int moyenne = total / this.tRoom.size();
+        int ecartType = (total / this.tRoom.size()) / 2;
+        
+        for(int i = 0; i < this.tRoom.size(); i++) {
+            int roomSize = this.tRoom.get(i).getAllGround().size();
+            if(roomSize < (moyenne - ecartType))
+                this.tRoom.get(i).roomSize = Room.RoomSize.SMALL;
+            else if(roomSize > (moyenne + ecartType))
+                this.tRoom.get(i).roomSize = Room.RoomSize.BIG;
+            else
+                this.tRoom.get(i).roomSize = Room.RoomSize.MEDIUM;
         }
     }
     

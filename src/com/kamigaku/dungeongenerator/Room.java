@@ -5,9 +5,12 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Random;
-import javafx.geometry.Bounds;
 
 public class Room {
+    
+    public enum RoomSize {
+        SMALL, MEDIUM, BIG
+    };
      
     private final ArrayList<Point> _bordersWithoutAngle;
     private final ArrayList<Room> _connections;
@@ -18,6 +21,8 @@ public class Room {
     
     public boolean isEntry = false;
     public boolean isExit = false;
+    
+    public RoomSize roomSize;
     
     private final long _seed;
     
@@ -62,6 +67,10 @@ public class Room {
         
     public Point getFirstFloorTilesPosition() {
         return this._ground.get(0);
+    }
+    
+    public ArrayList<Point> getAllGround() {
+        return this._ground;
     }
     
     public ArrayList<Room> getConnections() {
