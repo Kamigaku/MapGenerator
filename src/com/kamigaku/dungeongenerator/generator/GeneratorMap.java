@@ -8,7 +8,6 @@ import java.awt.Point;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Random;
-import javax.sound.midi.Soundbank;
 
 public class GeneratorMap {
   
@@ -554,6 +553,7 @@ public class GeneratorMap {
                 this.tRoom.get(i).roomSize = Room.RoomSize.BIG;
             else
                 this.tRoom.get(i).roomSize = Room.RoomSize.MEDIUM;
+            
         }
     }
     

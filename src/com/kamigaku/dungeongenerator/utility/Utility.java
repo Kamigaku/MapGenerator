@@ -15,25 +15,12 @@ public abstract class Utility {
     }
 
     public static ArrayList<Point> commonCoords(ArrayList<Point> v1, ArrayList<Point> v2) {
-        /* 100 ms */
         ArrayList<Point> v3 = new ArrayList<>();
         for(Point v : v1) {
             if(v2.contains(v))
                 v3.add(v);
         }
         return v3;
-        /* Plus long
-        ArrayList<Point> v3 = new ArrayList<>();
-        for(int i = 0; i < v1.size(); i++) {
-            Point v1i = v1.get(i);
-            for(int j = 0; j < v2.size(); j++) {
-                Point v2j = v2.get(j);
-                if(v1i.x == v2j.x && v1i.y == v2j.y)
-                    v3.add(v1i);
-            }
-        }
-        return v3;
-        */
     }
     
     /***
